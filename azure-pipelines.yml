@@ -27,7 +27,7 @@ steps:
 - task: Gradle@2
   inputs:
     gradleWrapperFile: 'gradlew'
-    options: '--info -DisBuildServer=true --no-daemon --stacktrace --warning-mode all'
+    options: '--info --no-daemon --stacktrace --warning-mode all'
     tasks: 'clean :test:smoke:testApps:CoreAndFilter:smokeTest'
     publishJUnitResults: false
     javaHomeOption: 'JDKVersion'
