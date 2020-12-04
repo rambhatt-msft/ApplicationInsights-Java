@@ -9,9 +9,7 @@ trigger:
 
 pool:
   vmImage: 'windows-2019'
-  demands:
-  - docker
-  - java
+
 steps:
 - checkout: self
   clean: true
