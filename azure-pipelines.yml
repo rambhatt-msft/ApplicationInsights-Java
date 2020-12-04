@@ -1,4 +1,5 @@
 # Gradle
+
 # Build your Java project and run tests with Gradle using a Gradle wrapper script.
 # Add steps that analyze code, save build artifacts, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/java
@@ -13,6 +14,9 @@ steps:
 - checkout: self
   clean: true
   submodules: recursive
+- task: BatchScript@1
+  inputs:
+    filename: 'printEnv.cmd'
 - task: Gradle@2
   inputs:
     gradleWrapperFile: 'otel/gradlew'
