@@ -16,6 +16,7 @@ steps:
 - task: Gradle@2
   inputs:
     gradleWrapperFile: 'otel/gradlew'
+    workingDirectory: 'otel'
     options: '--info --no-daemon --stacktrace --warning-mode=all --no-build-cache'
     tasks: 'clean publishToMavenLocal'
     publishJUnitResults: false
