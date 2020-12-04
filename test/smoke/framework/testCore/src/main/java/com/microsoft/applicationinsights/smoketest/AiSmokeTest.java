@@ -41,7 +41,9 @@ import javax.transaction.NotSupportedException;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,6 +60,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.*;
+
 /**
  * This is the base class for smoke tests.
  */
@@ -66,11 +69,11 @@ import static org.junit.Assert.*;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public abstract class AiSmokeTest {
 
-    //region: parameterization
+    // region: parameterization
     @Parameters(name = "{index}: {0}, {1}, {2}")
     public static Collection<Object[]> parameterGenerator() throws IOException {
         List<String> appServers = Resources.readLines(Resources.getResource("appServers.txt"), Charsets.UTF_8);
-        System.out.println("Target appservers="+Arrays.toString(appServers.toArray()));
+        System.out.println("Target appservers=" + Arrays.toString(appServers.toArray()));
         String os = System.getProperty("applicationinsights.smoketest.os", "linux");
         URL jreExcludesURL = Thread.currentThread().getContextClassLoader().getResource("jre.excludes.txt");
         List<String> jreExcludes;
@@ -95,16 +98,16 @@ public abstract class AiSmokeTest {
 
         // keys = appServers, values = jres supported by appServer
         for (Entry<String, String> entry : appServers2jres.entries()) {
-            rval.add(new Object[]{entry.getKey(), os, entry.getValue()});
+            rval.add(new Object[] { entry.getKey(), os, entry.getValue() });
         }
-        System.out.println("Configured appservers="+Arrays.toString(appServers2jres.keySet().toArray()));
+        System.out.println("Configured appservers=" + Arrays.toString(appServers2jres.keySet().toArray()));
 
         return rval;
     }
 
     private static List<String> getAppServerJres(String appServer, List<String> jreExcludes) throws IOException {
         List<String> jres = new ArrayList<>();
-        for (String jre : Resources.readLines(Resources.getResource(appServer+".jre.txt"), Charsets.UTF_8)) {
+        for (String jre : Resources.readLines(Resources.getResource(appServer + ".jre.txt"), Charsets.UTF_8)) {
             if (!jreExcludes.contains(jre)) {
                 jres.add(jre.replaceAll("[:/]", "_"));
             }
@@ -112,12 +115,15 @@ public abstract class AiSmokeTest {
         return jres;
     }
 
-    @Parameter(0) public String appServer;
-    @Parameter(1) public String os;
-    @Parameter(2) public String jreVersion;
-    //endregion
+    @Parameter(0)
+    public String appServer;
+    @Parameter(1)
+    public String os;
+    @Parameter(2)
+    public String jreVersion;
+    // endregion
 
-    //region: container fields
+    // region: container fields
     private static final short BASE_PORT_NUMBER = 28080;
     private static final String TEST_CONFIG_FILENAME = "testInfo.properties";
 
@@ -131,9 +137,9 @@ public abstract class AiSmokeTest {
             killTimer.start();
             docker.stopContainer(info.getContainerId());
             System.out.printf("Container stopped (%s) in %dms%n", info, killTimer.elapsed(TimeUnit.MILLISECONDS));
-        }
-        catch (Exception e) {
-            System.err.printf("Error stopping container (in %dms): %s%n", killTimer.elapsed(TimeUnit.MILLISECONDS), info);
+        } catch (Exception e) {
+            System.err.printf("Error stopping container (in %dms): %s%n", killTimer.elapsed(TimeUnit.MILLISECONDS),
+                    info);
             throw e;
         }
     }
@@ -150,32 +156,31 @@ public abstract class AiSmokeTest {
     protected static String networkId;
     protected static String networkName = "aismoke-net";
     protected static boolean requestCaptureEnabled = true; // we will assume request capturing is on
-    //endregion
+    // endregion
 
-    //region: application fields
+    // region: application fields
     protected String targetUri;
     protected String httpMethod;
     protected long targetUriDelayMs;
     protected long targetUriCallCount;
     protected long targetUriTimeoutMs;
-    //endregion
+    // endregion
 
-    //region: options
+    // region: options
     public static final int APPLICATION_READY_TIMEOUT_SECONDS = 120;
     public static final int TELEMETRY_RECEIVE_TIMEOUT_SECONDS = 10;
     public static final int DELAY_AFTER_CONTAINER_STOP_MILLISECONDS = 1500;
     public static final int HEALTH_CHECK_RETRIES = 2;
     public static final int APPSERVER_HEALTH_CHECK_TIMEOUT = 75;
-    //endregion
+    // endregion
 
     private static final Properties testProps = new Properties();
 
     protected static final MockedAppInsightsIngestionServer mockedIngestion = new MockedAppInsightsIngestionServer();
 
     /**
-     * This rule does a few things:
-     * 1. failure detection: logs are only grabbed when the test fails.
-     * 2. reads test metadata from annotations
+     * This rule does a few things: 1. failure detection: logs are only grabbed when
+     * the test fails. 2. reads test metadata from annotations
      */
     @Rule
     public TestWatcher theWatchman = new TestWatcher() {
@@ -194,12 +199,13 @@ public abstract class AiSmokeTest {
             } else {
                 thiz.targetUri = targetUri.value();
                 if (!thiz.targetUri.startsWith("/")) {
-                    thiz.targetUri = "/"+thiz.targetUri;
+                    thiz.targetUri = "/" + thiz.targetUri;
                 }
                 thiz.httpMethod = targetUri.method().toUpperCase();
                 thiz.targetUriDelayMs = targetUri.delay();
                 thiz.targetUriCallCount = targetUri.callCount();
-                thiz.targetUriTimeoutMs = targetUri.timeout() > 0 ? targetUri.timeout() : TELEMETRY_RECEIVE_TIMEOUT_SECONDS * 1000;
+                thiz.targetUriTimeoutMs = targetUri.timeout() > 0 ? targetUri.timeout()
+                        : TELEMETRY_RECEIVE_TIMEOUT_SECONDS * 1000;
             }
 
         }
@@ -214,14 +220,12 @@ public abstract class AiSmokeTest {
 
         private void printContainerLogs(String containerId) {
             try {
-                System.out.println("\nFetching container logs for "+containerId);
+                System.out.println("\nFetching container logs for " + containerId);
                 docker.printContainerLogs(containerId);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 System.err.println("Error copying logs to stream");
                 e.printStackTrace();
-            }
-            finally {
+            } finally {
                 System.out.println("\nFinished gathering logs.");
             }
         }
@@ -230,8 +234,7 @@ public abstract class AiSmokeTest {
             System.out.println("\nFetching appserver logs");
             try {
                 docker.execOnContainer(containerId, docker.getShellExecutor(), "tailLastLog.sh");
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 System.err.println("Error executing tailLastLog.sh");
                 e.printStackTrace();
             }
@@ -240,7 +243,8 @@ public abstract class AiSmokeTest {
 
     @BeforeClass
     public static void configureShutdownHook() {
-        // NOTE the JUnit runner (or gradle) forces this to happen. The syncronized block and check for empty should avoid any issues
+        // NOTE the JUnit runner (or gradle) forces this to happen. The syncronized
+        // block and check for empty should avoid any issues
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             @Override
             public void run() {
@@ -251,7 +255,8 @@ public abstract class AiSmokeTest {
                 try {
                     stopContainer(containerInfo);
                 } catch (Exception e) {
-                    System.err.println("Error while stopping container id="+containerInfo.getContainerId()+". This must be stopped manually.");
+                    System.err.println("Error while stopping container id=" + containerInfo.getContainerId()
+                            + ". This must be stopped manually.");
                     e.printStackTrace();
                 }
             }
@@ -266,13 +271,14 @@ public abstract class AiSmokeTest {
             UseAgent ua = description.getAnnotation(UseAgent.class);
             if (ua != null) {
                 agentMode = ua.value();
-                System.out.println("AGENT MODE: "+agentMode);
+                System.out.println("AGENT MODE: " + agentMode);
             }
             WithDependencyContainers wdc = description.getAnnotation(WithDependencyContainers.class);
             if (wdc != null) {
                 for (DependencyContainer container : wdc.value()) {
                     if (StringUtils.isBlank(container.value())) { // checks for null
-                        System.err.printf("WARNING: skipping dependency container with invalid name: '%s'%n", container.value());
+                        System.err.printf("WARNING: skipping dependency container with invalid name: '%s'%n",
+                                container.value());
                         continue;
                     }
                     dependencyImages.add(container);
@@ -282,7 +288,7 @@ public abstract class AiSmokeTest {
             RequestCapturing cr = description.getAnnotation(RequestCapturing.class);
             if (cr != null) {
                 requestCaptureEnabled = cr.enabled();
-                System.out.println("Request capturing is "+(requestCaptureEnabled ? "enabled." : "disabled."));
+                System.out.println("Request capturing is " + (requestCaptureEnabled ? "enabled." : "disabled."));
             }
         }
 
@@ -302,7 +308,8 @@ public abstract class AiSmokeTest {
     };
 
     @BeforeWithParams
-    public static void configureEnvironment(final String appServer, final String os, final String jreVersion) throws Exception {
+    public static void configureEnvironment(final String appServer, final String os, final String jreVersion)
+            throws Exception {
         System.out.println("Preparing environment...");
         try {
             final ContainerInfo containerInfo = currentContainerInfo.get();
@@ -340,13 +347,12 @@ public abstract class AiSmokeTest {
         }
     }
 
-
     @Before
     public void setupTest() throws Exception {
         callTargetUriAndWaitForTelemetry();
     }
 
-    //region: before test helper methods
+    // region: before test helper methods
     protected static String getAppContext() {
         if (warFileName.endsWith(".jar")) {
             // spring boot jar
@@ -358,10 +364,15 @@ public abstract class AiSmokeTest {
 
     protected static String getBaseUrl() {
         String appContext = getAppContext();
+        String localIp = null;
+        try {
+            localIp = InetAddress.getLocalHost().getHostAddress();
+        } catch (UnknownHostException e) {
+        }
         if (appContext.isEmpty()) {
-            return "http://localhost:" + appServerPort;
+            return "http://" + (localIp == null ? "localhost" : localIp) + ":" + appServerPort;
         } else {
-            return "http://localhost:" + appServerPort + "/" + appContext;
+            return "http://" + (localIp == null ? "localhost" : localIp) + ":" + appServerPort + "/" + appContext;
         }
     }
 
@@ -499,9 +510,14 @@ public abstract class AiSmokeTest {
     }
 
     protected static void checkMockedIngestionHealth() throws Exception {
-        String ok = HttpHelper.get("http://localhost:"+mockedIngestion.getPort()+"/");
+        String localIp = null;
+        try {
+            localIp = InetAddress.getLocalHost().getHostAddress();
+        } catch (UnknownHostException e) {
+        }
+        String ok = HttpHelper.get("http://" + (localIp == null ? "localhost" : localIp) + ":"+mockedIngestion.getPort()+"/");
         assertEquals(MockedAppInsightsIngestionServlet.ENDPOINT_HEALTH_CHECK_RESPONSE, ok);
-        String postResponse = HttpHelper.post("http://localhost:60606/v2/track", MockedAppInsightsIngestionServlet.PING);
+        String postResponse = HttpHelper.post("http://" + (localIp == null ? "localhost" : localIp) + ":60606/v2/track", MockedAppInsightsIngestionServlet.PING);
         assertEquals(MockedAppInsightsIngestionServlet.PONG, postResponse);
     }
 
@@ -600,7 +616,12 @@ public abstract class AiSmokeTest {
             allContainers.push(containerInfo);
         } else {
             try {
-                String url = String.format("http://localhost:%s/", String.valueOf(appServerPort));
+                String localIp = null;
+                try {
+                    localIp = InetAddress.getLocalHost().getHostAddress();
+                } catch (UnknownHostException e) {
+                }
+                String url = String.format("http://" + (localIp == null ? "localhost" : localIp) + ":%s/", String.valueOf(appServerPort));
                 System.out.printf("Verifying appserver has started (%s)...%n", url);
                 allContainers.push(containerInfo);
                 waitForUrlWithRetries(url, APPSERVER_HEALTH_CHECK_TIMEOUT, TimeUnit.SECONDS, String.format("app server on image '%s'", currentImageName), HEALTH_CHECK_RETRIES);
