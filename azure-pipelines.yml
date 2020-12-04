@@ -8,15 +8,20 @@ trigger:
 - main
 
 pool:
-  vmImage: 'windows-2019'
+  vmImage: 'ubuntu-latest'
 
 steps:
 - checkout: self
   clean: true
   submodules: recursive
-- task: BatchScript@1
+- task: PowerShell@2
   inputs:
-    filename: 'printEnv.cmd'
+    targetType: 'inline'
+    script: |
+      # Write your PowerShell commands here.
+      
+      Write-Host "Hello World"
+      which docker
 - task: Gradle@2
   inputs:
     gradleWrapperFile: 'otel/gradlew'
