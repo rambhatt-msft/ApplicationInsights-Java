@@ -31,6 +31,7 @@ subprojects {
 def findDockerExe() {
     if (!System.env.DOCKER_EXE) {
         logger.warn 'DOCKER_EXE not set'
+        return "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe"
     }
     return System.env.DOCKER_EXE
 }
