@@ -10,6 +10,9 @@ pool:
   vmImage: 'windows-2019'
 
 steps:
+- checkout: self
+  clean: true
+  submodules: recursive
 - task: Gradle@2
   inputs:
     gradleWrapperFile: 'otel/gradlew'
