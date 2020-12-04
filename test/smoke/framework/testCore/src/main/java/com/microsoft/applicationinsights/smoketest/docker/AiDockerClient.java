@@ -30,7 +30,7 @@ public class AiDockerClient {
     private String currentUser;
     private String shellExecutor;
 
-    private String dockerExePath;
+    private String dockerExePath = "docker";
 
     public AiDockerClient(String user, String shellExecutor) {
         Preconditions.checkNotNull(user, "user");
@@ -40,15 +40,15 @@ public class AiDockerClient {
         this.shellExecutor = shellExecutor;
 
         // TODO also check a property
-        String dockerPath = System.getenv(DOCKER_EXE_ENV_VAR);
-        if (Strings.isNullOrEmpty(dockerPath)) {
-            throw new SmokeTestException(DOCKER_EXE_ENV_VAR+" not set");
-        }
-        File de = new File(dockerPath);
-        if (!de.exists()) {
-            throw new SmokeTestException(String.format("Could not find docker: %s=%s", DOCKER_EXE_ENV_VAR, dockerPath));
-        }
-        this.dockerExePath = de.getAbsolutePath();
+        // String dockerPath = System.getenv(DOCKER_EXE_ENV_VAR);
+        // if (Strings.isNullOrEmpty(dockerPath)) {
+        //     throw new SmokeTestException(DOCKER_EXE_ENV_VAR+" not set");
+        // }
+        // File de = new File(dockerPath);
+        // if (!de.exists()) {
+        //     throw new SmokeTestException(String.format("Could not find docker: %s=%s", DOCKER_EXE_ENV_VAR, dockerPath));
+        // }
+        // this.dockerExePath = de.getAbsolutePath();
     }
 
     public String getCurrentUser() {

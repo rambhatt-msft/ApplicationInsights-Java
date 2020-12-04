@@ -5,7 +5,7 @@ allprojects {
     ext {
         sharedOutputRoot = project(':test:smoke').projectDir.absolutePath+'/shared-tmp'
         sharedResourcesDir = "$sharedOutputRoot/resources"
-        dockerExe = findDockerExe()
+//         dockerExe = findDockerExe()
     }
 }
 

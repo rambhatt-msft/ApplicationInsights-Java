@@ -87,9 +87,9 @@ subprojects {
         outputs.upToDateWhen { false } // let docker determine if something needs to be built
 
         doFirst {
-            if (!dockerExe) {
-                throw new GradleException("Please set environment variable DOCKER_EXE to the absolute path of the docker executable")
-            }
+            // if (!dockerExe) {
+            //     throw new GradleException("Please set environment variable DOCKER_EXE to the absolute path of the docker executable")
+            // }
         }
         doLast {
             copy {
@@ -115,7 +115,7 @@ subprojects {
                 def tag = df.name.minus('.dockerfile').replace('.', '_')
                 exec {
                     workingDir df.getParentFile().absolutePath
-                    executable dockerExe
+// //                     executable dockerExe
                     args 'build', '--pull', '-f', df.name, '-t', tag, '.'
                 }
             }
@@ -153,14 +153,14 @@ task resetDockerEnv {
     doLast {
         def os = new ByteArrayOutputStream()
         exec {
-            executable dockerExe
+//             executable dockerExe
             args 'ps', '-q'
             standardOutput = os
         }
         def dockerPs = os.toString().split('\\s+')
         if (dockerPs.length > 0) {
             exec {
-                executable dockerExe
+//                 executable dockerExe
                 ['stop', *dockerPs].each {
                     args it
                 }
@@ -168,17 +168,17 @@ task resetDockerEnv {
         }
         logger.info "Pruning containers..."
         exec {
-            executable dockerExe
+//             executable dockerExe
             args 'container', 'prune', '-f'
         }
         logger.info "Pruning networks..."
         exec {
-            executable dockerExe
+//             executable dockerExe
             args 'network', 'prune', '-f'
         }
         logger.info "Pruning images..."
         exec {
-            executable dockerExe
+//             executable dockerExe
             args 'image', 'prune', '-f'
         }
     }
@@ -233,7 +233,7 @@ def findDockerCliExe() {
 
 def verifyDockerInstallation() {
     exec {
-        executable dockerExe
+//         executable dockerExe
         args 'version'
     }
 }
@@ -242,7 +242,7 @@ def getCurrentDockerServerArch() {
     verifyDockerInstallation()
     def dockerVersionOutput = new ByteArrayOutputStream()
     exec {
-        executable dockerExe
+//         executable dockerExe
         args 'version'
         standardOutput = dockerVersionOutput
         errorOutput = new ByteArrayOutputStream()
