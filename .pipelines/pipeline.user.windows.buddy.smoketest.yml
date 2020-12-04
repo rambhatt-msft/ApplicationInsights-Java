@@ -2,8 +2,7 @@ build:
   commands:
     - !!defaultcommand
       name: 'Find docker'
-      command: 'powershell'
-      arguments: '-NoProfile -ExecutionPolicy Unrestricted -File Init-Docker.ps1'
+      command: '.scripts/findDocker.cmd'
     - !!defaultcommand
       name: 'Assemble ApplicationInsights-Java JARs'
       command: '.scripts/gradle.cmd'
